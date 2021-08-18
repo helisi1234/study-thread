@@ -1,0 +1,46 @@
+启动新线程的方式：
+  正确：start
+  错误：run
+
+start的准备工作：
+  子线程需要将自己位于准备状态：已经获得除cpu以外的所有资源，上下文，栈，pc等
+
+start方法含义：
+  启动新线程：通知JVM在空闲的情况下启动一个新线程，单线程并不一定立刻启动，该过程由线程调度
+  器决定
+
+start会让两个线程运行：
+  1.主线程和要创建的子线程
+  2.主线程负责调用thread.start()
+
+不能重复调用start()
+
+start源码：
+  public synchronized void start() {
+      //当不为0时会抛出异常，这就是不能重复执行start方法的原因
+      //检查线程状态
+      if (threadStatus != 0)
+          throw new IllegalThreadStateException();
+      group.add(this);  //添加到线程组中
+      boolean started = false;
+      try {
+          start0();  //具体执行方法，创建新线程
+          started = true;
+      } finally {
+          try {
+              if (!started) {
+                  group.threadStartFailed(this);
+              }
+          } catch (Throwable ignore) {
+              /* do nothing. If start0 threw a Throwable then
+                it will be passed up the call stack */
+          }
+      }
+  }
+
+run源码：
+  if(target != null) {
+    target.run();
+  }
+  runnable一定被定义在某个线程内（通常是一个函数内），runnable对象执行run时就相当于调用一个
+  普通方法，类似String str; str.split(" ");这种调用
